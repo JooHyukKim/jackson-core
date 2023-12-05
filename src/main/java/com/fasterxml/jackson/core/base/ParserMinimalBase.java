@@ -703,6 +703,23 @@ public abstract class ParserMinimalBase extends JsonParser
     }
 
     /**
+     * Method that throws {@link JsonEOFException} without any parser information, including source.
+     * @since 2.17
+     */
+    protected void _reportInvalidEOFWithoutParser() throws JsonParseException {
+        _reportInvalidEOFWithoutParser(" in "+_currToken, _currToken);
+    }
+
+    /**
+     * Internal helper method used to encapsulate logic {@link #_reportInvalidEOF()}
+     *
+     * @since 2.17
+     */
+    private void _reportInvalidEOFWithoutParser(String msg, JsonToken currToken) throws JsonParseException {
+        throw new JsonEOFException(null, currToken, "Unexpected end-of-input"+msg);
+    }
+
+    /**
      * @deprecated Since 2.8 use {@link #_reportInvalidEOF(String, JsonToken)} instead
      *
      * @throws JsonParseException Exception that describes problem with end-of-content within value

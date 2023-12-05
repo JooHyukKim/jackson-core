@@ -531,6 +531,11 @@ public abstract class ParserBase extends ParserMinimalBase
     @Override
     protected void _handleEOF() throws JsonParseException {
         if (!_parsingContext.inRoot()) {
+            // [core#1151] Since 2.17 Allow configuration to exclude `"start marker...."' from exception messages
+            if (!_ioContext.errorReportConfiguration().includeSourceWhenInvalidEOF()) {
+                _reportInvalidEOFWithoutParser();
+                return;
+            }
             String marker = _parsingContext.inArray() ? "Array" : "Object";
             _reportInvalidEOF(String.format(
                     ": expected close marker for %s (start marker at %s)",

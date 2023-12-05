@@ -2,6 +2,7 @@ package com.fasterxml.jackson.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.core.io.ContentReference;
+import com.fasterxml.jackson.core.io.JsonEOFException;
 
 /**
  * Unit tests for class {@link ErrorReportConfiguration}.
@@ -226,6 +227,33 @@ public class ErrorReportConfigurationTest
         }
     }
 
+    /**
+     * [core#1151] Allow configuration to exclude `"start marker...."' from exception messages
+     */
+    public void testIncludeSourceWhenEOF()
+            throws Exception
+    {
+        // Default
+        _verifyBehaviorEOF(
+            ErrorReportConfiguration.builder().build(),
+            "Unexpected end-of-input: expected close marker for Array (start marker at " +
+                "[Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 1])\n" +
+                " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 7]"
+        );
+        // Enabled
+        _verifyBehaviorEOF(
+            ErrorReportConfiguration.builder().includeSourceWhenInvalidEOF(true).build(),
+            "Unexpected end-of-input: expected close marker for Array (start marker at " +
+                "[Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 1])\n" +
+                " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 7]"
+        );
+        // Disabled
+        _verifyBehaviorEOF(
+            ErrorReportConfiguration.builder().includeSourceWhenInvalidEOF(false).build(),
+            "Unexpected end-of-input in VALUE_NUMBER_INT"
+        );
+    }
+
     /*
     /**********************************************************
     /* Internal helper methods
@@ -309,5 +337,25 @@ public class ErrorReportConfigurationTest
         }
         sb.append("!}");
         return sb.toString();
+    }
+
+
+    private void _verifyBehaviorEOF(ErrorReportConfiguration erc, String fullErrorMessage)
+            throws Exception
+    {
+        final String BROKEN_ARRAY_STRING = "[ 123 ";
+        JsonFactory factory = JsonFactory.builder()
+            .errorReportConfiguration(erc)
+            .build();
+
+        try (JsonParser parser = factory.createParser(BROKEN_ARRAY_STRING)) {
+            parser.nextToken();
+            parser.nextToken();
+            parser.nextToken();
+            fail("Should not reach");
+        } catch (JsonEOFException e) {
+            // Assert
+            assertThat(e.getMessage()).isEqualTo(fullErrorMessage);
+        }
     }
 }

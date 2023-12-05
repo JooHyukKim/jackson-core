@@ -29,6 +29,13 @@ public class ErrorReportConfiguration
      * Default value for {@link #_maxRawContentLength}.
      */
     public static final int DEFAULT_MAX_RAW_CONTENT_LENGTH = 500;
+
+    /**
+     * Default value for {@link #_includeSourceWhenInvalidEOF}.
+     *
+     * @since 2.17
+     */
+    public static final boolean DEFAULT_INCLUDE_SOURCE_WHEN_INVALID_EOF = true;
     
     /**
      * Maximum length of token to include in error messages
@@ -44,8 +51,16 @@ public class ErrorReportConfiguration
      */
     protected final int _maxRawContentLength;
 
+    /**
+     * Whether to include source in error messages when invalid EOF is encountered.
+     *
+     * @see Builder#includeSourceWhenInvalidEOF(boolean)
+     */
+    protected final boolean _includeSourceWhenInvalidEOF;
+
     private static ErrorReportConfiguration DEFAULT =
-            new ErrorReportConfiguration(DEFAULT_MAX_ERROR_TOKEN_LENGTH, DEFAULT_MAX_RAW_CONTENT_LENGTH);
+            new ErrorReportConfiguration(DEFAULT_MAX_ERROR_TOKEN_LENGTH, DEFAULT_MAX_RAW_CONTENT_LENGTH,
+                DEFAULT_INCLUDE_SOURCE_WHEN_INVALID_EOF);
 
     /**
      * Override the default ErrorReportConfiguration. These defaults are only used when {@link JsonFactory}
@@ -65,12 +80,13 @@ public class ErrorReportConfiguration
      */
     public static void overrideDefaultErrorReportConfiguration(final ErrorReportConfiguration errorReportConfiguration) {
         if (errorReportConfiguration == null) {
-            DEFAULT = new ErrorReportConfiguration(DEFAULT_MAX_ERROR_TOKEN_LENGTH, DEFAULT_MAX_RAW_CONTENT_LENGTH);
+            DEFAULT = new ErrorReportConfiguration(DEFAULT_MAX_ERROR_TOKEN_LENGTH, DEFAULT_MAX_RAW_CONTENT_LENGTH,
+                            DEFAULT_INCLUDE_SOURCE_WHEN_INVALID_EOF);
         } else {
             DEFAULT = errorReportConfiguration;
         }
     }
-    
+
     /*
     /**********************************************************************
     /* Builder
@@ -80,6 +96,7 @@ public class ErrorReportConfiguration
     public static final class Builder {
         private int maxErrorTokenLength;
         private int maxRawContentLength;
+        private boolean includeSourceWhenInvalidEOF;
 
         /**
          * @param maxErrorTokenLength Maximum error token length setting to use
@@ -106,23 +123,30 @@ public class ErrorReportConfiguration
             this.maxRawContentLength = maxRawContentLength;
             return this;
         }
+
+        public Builder includeSourceWhenInvalidEOF(boolean includeSourceWhenInvalidEOF) {
+            this.includeSourceWhenInvalidEOF = includeSourceWhenInvalidEOF;
+            return this;
+        }
         
         Builder() {
-            this(DEFAULT_MAX_ERROR_TOKEN_LENGTH, DEFAULT_MAX_RAW_CONTENT_LENGTH);
+            this(DEFAULT_MAX_ERROR_TOKEN_LENGTH, DEFAULT_MAX_RAW_CONTENT_LENGTH, DEFAULT_INCLUDE_SOURCE_WHEN_INVALID_EOF);
         }
 
-        Builder(final int maxErrorTokenLength, final int maxRawContentLength) {
+        Builder(final int maxErrorTokenLength, final int maxRawContentLength, final boolean includeSourceWhenInvalidEOF) {
             this.maxErrorTokenLength = maxErrorTokenLength;
             this.maxRawContentLength = maxRawContentLength;
+            this.includeSourceWhenInvalidEOF = includeSourceWhenInvalidEOF;
         }
 
         Builder(ErrorReportConfiguration src) {
             this.maxErrorTokenLength = src._maxErrorTokenLength;
             this.maxRawContentLength = src._maxRawContentLength;
+            this.includeSourceWhenInvalidEOF = src._includeSourceWhenInvalidEOF;
         }
 
         public ErrorReportConfiguration build() {
-            return new ErrorReportConfiguration(maxErrorTokenLength, maxRawContentLength);
+            return new ErrorReportConfiguration(maxErrorTokenLength, maxRawContentLength, includeSourceWhenInvalidEOF);
         }
     }
     
@@ -132,9 +156,12 @@ public class ErrorReportConfiguration
     /**********************************************************************
      */
 
-    protected ErrorReportConfiguration(final int maxErrorTokenLength, final int maxRawContentLength) {
+    protected ErrorReportConfiguration(final int maxErrorTokenLength, final int maxRawContentLength,
+                final boolean includeSourceWhenInvalidEOF
+    ) {
         _maxErrorTokenLength = maxErrorTokenLength;
         _maxRawContentLength = maxRawContentLength;
+        _includeSourceWhenInvalidEOF = includeSourceWhenInvalidEOF;
     }
 
     public static Builder builder() {
@@ -180,6 +207,16 @@ public class ErrorReportConfiguration
      */
     public int getMaxRawContentLength() {
         return _maxRawContentLength;
+    }
+
+    /**
+     * Accessor for {@link #_includeSourceWhenInvalidEOF}
+     *
+     * @return Whether to include start marker in error messages
+     * @see Builder#includeSourceWhenInvalidEOF(boolean)
+     */
+    public boolean includeSourceWhenInvalidEOF() {
+        return _includeSourceWhenInvalidEOF;
     }
 
     /*
