@@ -250,7 +250,7 @@ public class ErrorReportConfigurationTest
         // Disabled
         _verifyBehaviorEOF(
             ErrorReportConfiguration.builder().includeSourceWhenInvalidEOF(false).build(),
-            "Unexpected end-of-input in VALUE_NUMBER_INT"
+            "Unexpected end-of-input: expected close marker for Array; line: 1, column: 7"
         );
     }
 
